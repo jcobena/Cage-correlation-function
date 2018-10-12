@@ -27,52 +27,45 @@ using namespace std;
 /* ---------------------------------------------------------------------- */
 
 ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  qlist(NULL), distsq(NULL), nearest(NULL), rlist(NULL),
-  qnarray(NULL), qnm_r(NULL), qnm_i(NULL)
+  Compute(lmp, narg, arg)
 {
-  // validate and process args
-    // cutoff,... etc
-
-  // check if enough arguments
-  // at least needs:
-  // 1: compute ID
-  // 2: group ID
-  // 3: style name (ccf)
+  // Process Args
+    // check if enough arguments
+    // at least needs:
+    // 1: compute ID
+    // 2: group ID
+    // 3: style name (ccf)
   if (narg < 3 ) error->all(FLERR,"Illegal compute ccf command");
-
-  // set default values for optional args
-  cutsq = 0.0;
-
-  // process optional args
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
       // need at least one more arg for value of cutoff
-      if (iarg+1 >= narg)
-        error->all(FLERR,"Illegal compute ccf command: more than one value for cutoff");
+      if (iarg+1 >= narg) error->all(FLERR,"Illegal compute ccf command: more than one value for cutoff");
+      // convert cutoff using force.numeric()
       double cutoff = force->numeric(FLERR,arg[iarg+1]);
       // no negative cutoff
-      if (cutoff <= 0.0)
-        error->all(FLERR,"Illegal compute ccf command: no negative cutoff values");
+      if (cutoff <= 0.0) error->all(FLERR,"Illegal compute ccf command: no negative cutoff values");
+      // save cutoff value
       cutsq = cutoff*cutoff;
       iarg += 2;
     } 
     else error->all(FLERR,"Illegal compute ccf command: keyword does not exist");
   }
+
+  // Initialize member variables
+  cutsq = 0.0;
+
+  // Set flags for functions that will be used such as compute_peratom()
+    // peratom_flag = 1;
+    // size_peratom_cols = ncol;
+
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeCCF::~ComputeCCF()
 {
-  memory->destroy(qnarray);
-  memory->destroy(distsq);
-  memory->destroy(rlist);
-  memory->destroy(nearest);
-  memory->destroy(qlist);
-  memory->destroy(qnm_r);
-  memory->destroy(qnm_i);
+
 }
 
 // set parameters for neighbor list
@@ -95,7 +88,7 @@ void ComputeCCF::init_list(int /*id*/, NeighList *ptr)
 }
 
 // function that creates and uses neighbor list
-void ComputeCCF::compute_ccf()
+void ComputeCCF::compute_?()
 {
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;

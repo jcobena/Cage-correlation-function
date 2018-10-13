@@ -28,13 +28,15 @@ class ComputeCCF : public Compute {
   // initializes neighborlist
   void init_list(int, NeighList *ptr);
   // compute function
-  void compute_peratom();
+  double compute_scalar();
 
+  // variables
+  double cutsq;
 
  private:
   class NeighList *list;
-  int cutsq;
-
+  int maxneigh;
+  int *nearest;
 }
 
 #endif

@@ -23,18 +23,13 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace std;
 
-
 /* ---------------------------------------------------------------------- */
 
+// constructor
 ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), nearest(NULL)
 {
-  // Process Args
-    // check if enough arguments
-    // at least needs:
-    // 1: compute ID
-    // 2: group ID
-    // 3: style name (ccf)
+  // Validate and Process Arguments
   if (narg < 3 ) error->all(FLERR,"Illegal compute ccf command");
   int iarg = 3;
   while (iarg < narg) {
@@ -54,24 +49,34 @@ ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
 
   // Initialize member variables
   cutsq = 0.0;
+  maxneigh = 0;
 
-  // Set flags for functions that will be used such as compute_peratom()
-    // peratom_flag = 1;
-    // size_peratom_cols = ncol;
-
+  // Set flags for compute style methods that will be implemented/executed
+  scalar_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
+// deconstructor
 ComputeCCF::~ComputeCCF()
 {
-
+  memory->destroy(nearest);
 }
+
+/* ---------------------------------------------------------------------- */
 
 // set parameters for neighbor list
 void ComputeCCF::init()
 {
-  // neighbor list at t0 and tt
+  // Validate cutoff
+  // if cutsq == 0, set cutsq = (force cutoff)^2
+  if (cutsq == 0.0) 
+    cutsq = force->pair->cutforce * force->pair->cutforce;
+  // if sqrt(cutsq) > force cut error!
+  else if (sqrt(cutsq) > force->pair->cutforce)
+    error->all(FLERR,"Compute ccf cutoff is longer than pairwise cutoff");  
+  
+  // Initialize neighbor list parameters
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
@@ -79,7 +84,15 @@ void ComputeCCF::init()
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->occasional = 1;
 
+  // Make sure there is only 1 compute style "ccf"
+  int count = 0;
+  for (int i = 0; i < modify->ncompute; i++)
+    if (strcmp(modify->compute[i]->style,"ccf") == 0) count++;
+  if (count > 1 && comm->me == 0)
+    error->warning(FLERR,"More than one compute ccf");
 }
+
+/* ---------------------------------------------------------------------- */
 
 // initializes neighbor list
 void ComputeCCF::init_list(int /*id*/, NeighList *ptr)
@@ -87,22 +100,29 @@ void ComputeCCF::init_list(int /*id*/, NeighList *ptr)
   list = ptr;
 }
 
+/* ---------------------------------------------------------------------- */
+
 // function that creates and uses neighbor list
-void ComputeCCF::compute_?()
+double ComputeCCF::compute_scalar()
 {
+  // variables
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
+  // update t?
+  invoked_scalar = update->ntimestep;
 
+  // build neighbor list
   neighbor->build_one(list);
 
+  // retrieve neighbor list information
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-
+  // retrieve atom coordinates at time t
   double **x = atom->x;
   int *mask = atom->mask;
 
@@ -110,38 +130,54 @@ void ComputeCCF::compute_?()
   for (ii = 0; ii < inum; ii++) {
     // get numneigh index for ii
     i = ilist[ii];
-    // jum = length of numneigh for atom ii
-    jnum = numneigh[i];
 
+    // if atom is part of selected group?
+    if (mask[i] & groupbit) {
+      // get coordinates of atom i
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
 
-      // loop over list of all neighbors within force cutoff
-      // distsq[] = distance sq to each
-      // rlist[] = distance vector to each
-      // nearest[] = atom indices of neighbors
+      // get the list and size of neighbors at atom i
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-      // for every neighbor with "force cutoff"??
-      // -ask jose
-    int ncount = 0;
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-
-      // looks like we are checking the distance of every atom for cutoffs
-      j &= NEIGHMASK;
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      // if distance less than cutoff store id
-      if (rsq < cutsq) {
-        distsq[ncount] = rsq;
-        rlist[ncount][0] = delx;
-        rlist[ncount][1] = dely;
-        rlist[ncount][2] = delz;
-        nearest[ncount++] = j;
+      // make sure nearest array has enough space
+      if (jnum > maxneigh) {
+        memory->destroy(nearest);
+        maxneigh = jnum;
+        memory->create(nearest,maxneigh,"ccf:nearest");
       }
+
+
+      // for all atom i neighbors within force cutoff
+      int ncount = 0;
+      for (jj = 0; jj < jnum; jj++) {
+        // get unique id j
+        j = jlist[jj];
+        j &= NEIGHMASK;
+        
+        // get coordinates at atom j
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        
+        // compute rsq
+        rsq = delx*delx + dely*dely + delz*delz;
+
+        // if atom j is within compute cutoff
+        if (rsq < cutsq) {
+          // save id
+          nearest[ncount++] = j;
+        }
+      }
+
+      // neighbor list of atom i should be withing nearest[] array
+      // print?
     }
   }
+
+  // return value
+  scalar=66.6;
+  return scalar;
 }
-
-

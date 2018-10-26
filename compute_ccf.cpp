@@ -1,5 +1,19 @@
-/* -*- c++ -*- ----------------------------------------------------------
-  Compute CCF
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author:  Aidan Thompson (SNL)
+                         Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include <cstring>
@@ -18,63 +32,100 @@
 #include "memory.h"
 #include "error.h"
 #include "math_const.h"
+#include <string>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace std;
 
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
+
 /* ---------------------------------------------------------------------- */
 
-// constructor
 ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), nearest(NULL)
+  Compute(lmp, narg, arg),
+  qlist(NULL), distsq(NULL), nearest(NULL), rlist(NULL),
+  qnarray(NULL), qnm_r(NULL), qnm_i(NULL)
 {
+
   // Validate and Process Arguments
   if (narg < 3 ) error->all(FLERR,"Illegal compute ccf command");
+
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
+      // no cutoff value
+      if(iarg+1 == narg)
+        error->all(FLERR,"Illegal compute ccf command: no value for cutoff");
       // need at least one more arg for value of cutoff
-      if (iarg+1 >= narg) error->all(FLERR,"Illegal compute ccf command: more than one value for cutoff");
+      else if (iarg+2 < narg) 
+        error->all(FLERR,"Illegal compute ccf command: more than one value for cutoff");
+      
       // convert cutoff using force.numeric()
       double cutoff = force->numeric(FLERR,arg[iarg+1]);
+
       // no negative cutoff
-      if (cutoff <= 0.0) error->all(FLERR,"Illegal compute ccf command: no negative cutoff values");
-      // save cutoff value
+      if (cutoff < 0.0) 
+        error->all(FLERR,"Illegal compute ccf command: no negative cutoff values");
+      
+      // compute cutoff sqrd value
       cutsq = cutoff*cutoff;
       iarg += 2;
     } 
     else error->all(FLERR,"Illegal compute ccf command: keyword does not exist");
   }
 
-  // Initialize member variables
+  if(cutsq == 0){
+  	error->all(FLERR,"cutsq == 0");
+  }
+    // Initialize member variables
   cutsq = 0.0;
   maxneigh = 0;
 
   // Set flags for compute style methods that will be implemented/executed
-  scalar_flag = 1;
+  peratom_flag = 1;
+
+  //flag = FALSE;
+
 }
 
 /* ---------------------------------------------------------------------- */
 
-// deconstructor
 ComputeCCF::~ComputeCCF()
 {
+  memory->destroy(qnarray);
+  memory->destroy(distsq);
+  memory->destroy(rlist);
   memory->destroy(nearest);
+  memory->destroy(qlist);
+  memory->destroy(qnm_r);
+  memory->destroy(qnm_i);
+
 }
 
 /* ---------------------------------------------------------------------- */
 
-// set parameters for neighbor list
 void ComputeCCF::init()
 {
+  //error->all(FLERR,"Spencers TEST: Entering init()");
+  
   // Validate cutoff
   // if cutsq == 0, set cutsq = (force cutoff)^2
-  if (cutsq == 0.0) 
+  if (cutsq == 0.0) {
     cutsq = force->pair->cutforce * force->pair->cutforce;
+    error->all(FLERR,"Spencers TEST: cutsq == 0");
+  }
   // if sqrt(cutsq) > force cut error!
   else if (sqrt(cutsq) > force->pair->cutforce)
-    error->all(FLERR,"Compute ccf cutoff is longer than pairwise cutoff");  
+    error->all(FLERR,"Compute ccf cutoff is longer than pairwise cutoff");
+  else{
+    error->all(FLERR,"Compute ccf cutoff is longer than pairwise cutoff");
+  }
+
   
   // Initialize neighbor list parameters
   int irequest = neighbor->request(this,instance_me);
@@ -94,7 +145,6 @@ void ComputeCCF::init()
 
 /* ---------------------------------------------------------------------- */
 
-// initializes neighbor list
 void ComputeCCF::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
@@ -102,9 +152,9 @@ void ComputeCCF::init_list(int /*id*/, NeighList *ptr)
 
 /* ---------------------------------------------------------------------- */
 
-// function that creates and uses neighbor list
-double ComputeCCF::compute_scalar()
+void ComputeCCF::compute_peratom()
 {
+
   // variables
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -172,12 +222,16 @@ double ComputeCCF::compute_scalar()
         }
       }
 
+      // if (flag == FALSE){
+      // 	//store t0
+      // 	flag = TRUE;
+      // }
+      // else{
+
+      // }
+
       // neighbor list of atom i should be withing nearest[] array
       // print?
     }
   }
-
-  // return value
-  scalar=66.6;
-  return scalar;
 }

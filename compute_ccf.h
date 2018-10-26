@@ -1,6 +1,16 @@
 /* -*- c++ -*- ----------------------------------------------------------
-  Compute CCF
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 #ifdef COMPUTE_CLASS
 
 ComputeStyle(ccf,ComputeCCF)
@@ -16,28 +26,52 @@ namespace LAMMPS_NS {
 
 class ComputeCCF : public Compute {
  public:
-  // constructor/deconstructor
-  // check user args, set flags, initialize variables
   ComputeCCF(class LAMMPS *, int, char **);
-  // delete memory
   ~ComputeCCF();
-  
-  // virtual functions from compute class
-  // set up neighborlist parameters
   void init();
-  // initializes neighborlist
-  void init_list(int, NeighList *ptr);
-  // compute function
-  double compute_scalar();
-
-  // variables
+  void init_list(int, class NeighList *);
+  void compute_peratom();
+  //double memory_usage();
   double cutsq;
+  int iqlcomp, qlcomp, qlcompflag;
+  int *qlist;
+  int nqlist;
 
  private:
+  int nmax,maxneigh,ncol,nnn;
   class NeighList *list;
-  int maxneigh;
+  double *distsq;
   int *nearest;
+  double **rlist;
+  int qmax;
+  double **qnarray;
+  double **qnm_r;
+  double **qnm_i;
+};
+
 }
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Compute orientorder/atom requires a pair style be defined
+
+Self-explanatory.
+
+E: Compute orientorder/atom cutoff is longer than pairwise cutoff
+
+Cannot compute order parameter beyond cutoff.
+
+W: More than one compute orientorder/atom
+
+It is not efficient to use compute orientorder/atom more than once.
+
+*/

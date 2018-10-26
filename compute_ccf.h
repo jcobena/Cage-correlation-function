@@ -36,6 +36,8 @@ class ComputeCCF : public Compute {
   int iqlcomp, qlcomp, qlcompflag;
   int *qlist;
   int nqlist;
+  void set_arrays(int); //just added to start testing the storing of initial positions
+  void compute_vector();
 
  private:
   int nmax,maxneigh,ncol,nnn;

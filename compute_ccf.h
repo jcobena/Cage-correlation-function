@@ -31,7 +31,7 @@ class ComputeCCF : public Compute {
   void init();
   void init_list(int, class NeighList *);
   void compute_peratom();
-  //double memory_usage();
+  double memory_usage();
   double cutsq;
   int iqlcomp, qlcomp, qlcompflag;
   int *qlist;

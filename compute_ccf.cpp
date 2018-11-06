@@ -33,6 +33,8 @@
 #include "error.h"
 #include "math_const.h"
 #include <string>
+#include <sstream>
+#include <iostream>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -46,12 +48,15 @@ using namespace std;
 
 /* ---------------------------------------------------------------------- */
 
+// Constructor function invoked when:
+//     'compute ccf_test all ccf cutoff ...'
+// is called in the input file
 ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   qlist(NULL), distsq(NULL), nearest(NULL), rlist(NULL),
   qnarray(NULL), qnm_r(NULL), qnm_i(NULL)
 {
-
+  error->warning(FLERR,"Entering Constructor");
   // Validate and Process Arguments
   if (narg < 3 ) error->all(FLERR,"Illegal compute ccf command");
 
@@ -71,19 +76,17 @@ ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
       // no negative cutoff
       if (cutoff < 0.0) 
         error->all(FLERR,"Illegal compute ccf command: no negative cutoff values");
-      
-      // compute cutoff sqrd value
-      cutsq = cutoff*cutoff;
-      iarg += 2;
+      else{
+        // compute cutoff sqrd value
+        cutsq = cutoff*cutoff;
+        iarg += 2;
+      }
+
     } 
     else error->all(FLERR,"Illegal compute ccf command: keyword does not exist");
   }
 
-  if(cutsq == 0){
-  	error->all(FLERR,"cutsq == 0");
-  }
-    // Initialize member variables
-  cutsq = 0.0;
+  // Initialize member variables
   maxneigh = 0;
 
   // Set flags for compute style methods that will be implemented/executed
@@ -97,6 +100,7 @@ ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCCF::~ComputeCCF()
 {
+  error->warning(FLERR,"Entering deconstructor");
   memory->destroy(qnarray);
   memory->destroy(distsq);
   memory->destroy(rlist);
@@ -109,24 +113,24 @@ ComputeCCF::~ComputeCCF()
 
 /* ---------------------------------------------------------------------- */
 
+// init function invoked when:
+//     'fix 2nve all nve
+//      run       20000'
+// is called in the input file
 void ComputeCCF::init()
 {
-  //error->all(FLERR,"Spencers TEST: Entering init()");
-  
+  error->warning(FLERR,"Entering init");
+
   // Validate cutoff
   // if cutsq == 0, set cutsq = (force cutoff)^2
-  if (cutsq == 0.0) {
+  if(cutsq == 0.0) {
     cutsq = force->pair->cutforce * force->pair->cutforce;
-    error->all(FLERR,"Spencers TEST: cutsq == 0");
   }
   // if sqrt(cutsq) > force cut error!
-  else if (sqrt(cutsq) > force->pair->cutforce)
-    error->all(FLERR,"Compute ccf cutoff is longer than pairwise cutoff");
-  else{
+  else if (sqrt(cutsq) > force->pair->cutforce){
     error->all(FLERR,"Compute ccf cutoff is longer than pairwise cutoff");
   }
 
-  
   // Initialize neighbor list parameters
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
@@ -144,16 +148,27 @@ void ComputeCCF::init()
 }
 
 /* ---------------------------------------------------------------------- */
-
+// init function invoked when:
+//     'fix 2nve all nve
+//      run       20000'
+// is called in the input file
+// after init()
 void ComputeCCF::init_list(int /*id*/, NeighList *ptr)
 {
+  error->warning(FLERR,"Entering init_list");
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
+// init function invoked when:
+//     'fix 2nve all nve
+//      run       20000'
+// is called in the input file
+// after init_list()
 void ComputeCCF::compute_peratom()
 {
+  error->warning(FLERR,"Entering compute_peratom");
 
   // variables
   int i,j,ii,jj,inum,jnum;
@@ -161,7 +176,7 @@ void ComputeCCF::compute_peratom()
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   // update t?
-  invoked_scalar = update->ntimestep;
+  invoked_peratom = update->ntimestep;
 
   // build neighbor list
   neighbor->build_one(list);
@@ -176,8 +191,17 @@ void ComputeCCF::compute_peratom()
   double **x = atom->x;
   int *mask = atom->mask;
 
+  // stringstream ss;
+  // ss << inum; 
+  // string message = "\ninum = " + ss.str() + "\n";
+  cout << "cutsq=" << cutsq << endl;
+  cout << "inum=" << inum << endl;
+  
   // for every atom id 0 to inum
   for (ii = 0; ii < inum; ii++) {
+
+    cout << "i=" << ii << " : ";
+
     // get numneigh index for ii
     i = ilist[ii];
 
@@ -199,10 +223,14 @@ void ComputeCCF::compute_peratom()
         memory->create(nearest,maxneigh,"ccf:nearest");
       }
 
+      
+
+      cout << "jnum=" << jnum << " : " ;
 
       // for all atom i neighbors within force cutoff
       int ncount = 0;
       for (jj = 0; jj < jnum; jj++) {
+
         // get unique id j
         j = jlist[jj];
         j &= NEIGHMASK;
@@ -221,17 +249,31 @@ void ComputeCCF::compute_peratom()
           nearest[ncount++] = j;
         }
       }
+      
+      cout << "ncount=" << ncount << endl;
 
       // if (flag == FALSE){
-      // 	//store t0
-      // 	flag = TRUE;
+      //  //store t0
+      //  flag = TRUE;
       // }
-      // else{
+      // else{}
 
-      // }
-
-      // neighbor list of atom i should be withing nearest[] array
-      // print?
     }
+
   }
+  error->warning(FLERR,"finishing compute peratom");
+}
+
+
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based array
+------------------------------------------------------------------------- */
+
+double ComputeCCF::memory_usage()
+{
+  error->warning(FLERR,"Entering memory_usage");
+  double bytes = ncol*nmax * sizeof(double);
+  bytes += (qmax*(2*qmax+1)+maxneigh*4) * sizeof(double);
+  bytes += (nqlist+maxneigh) * sizeof(int);
+  return bytes;
 }

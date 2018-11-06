@@ -35,17 +35,10 @@ pair_modify shift yes
 velocity all create  ${T1}  26493 dist gaussian 
 
 
-#print "started compute ccf" screen
-#--------------**Write your command here**---------------------------------#
-#compute ccf_test all ccf cutoff 0
-#--------------------------------------------------------------------------#
-#print "ended compute ccf" screen
-
-
 
 # #print thermo prop every 500 steps-----------------------------------------#	
 thermo_style custom pe ke etotal temp  press  step #c_ccf_test
-thermo 500
+thermo 2000
 
 
 # #set timestep, nve integrator and run1-------------------------------------#
@@ -62,7 +55,10 @@ min_style sd
 minimize	0.0 0.0 10000 10000 	
 
 
-compute ccf_test all ccf cutoff 0
+
+# call to compute ccf
+compute ccf_test all ccf cutoff 2
+
 dump d1 all custom 1000 ccf-file-*.txt id c_ccf_test
 
 
@@ -72,21 +68,24 @@ velocity all create  ${T2}  39566 dist gaussian
 
 #set timestep, nve integrator and run2-------------------------------------#
 fix 2nve all nve
+
+# ComputeCCF() is invoked here
 run 			20000
+
 unfix 2nve
 
 
 
 
-#dump positions of atoms every 10 times steps------------------------------#
-#dump	        d1 all custom 1000 uni-file-*.txt id type element x y z xs ys zs xu yu zu xsu ysu zsu ix iy iz q vx vy vz
-#dump_modify     d1 pad 8 
+# dump positions of atoms every 10 times steps------------------------------#
+# dump	        d1 all custom 1000 uni-file-*.txt id type element x y z xs ys zs xu yu zu xsu ysu zsu ix iy iz q vx vy vz
+# dump_modify     d1 pad 8 
 
 
-#set timestep, nve integrator and run3-------------------------------------#
-#fix 3nve all nve
-#run 			200000
-#unfix 3nve
+# set timestep, nve integrator and run3-------------------------------------#
+# fix 3nve all nve
+# run 			200000
+# unfix 3nve
 
 
 

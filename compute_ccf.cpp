@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <cmath>
 #include "compute_ccf.h"
+#include "fix_store.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -277,3 +278,35 @@ double ComputeCCF::memory_usage()
   bytes += (nqlist+maxneigh) * sizeof(int);
   return bytes;
 }
+   //JCO added the parameters to create the fix store, the value of nwewardg[5] should be the length of the vector array of the neighbots of atom i
+	// create a new fix STORE style for reference positions
+	// id = compute-ID + COMPUTE_STORE, fix group = compute group
+
+	int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
+	id_fix = new char[n];
+	strcpy(id_fix, id);
+	strcat(id_fix, "_COMPUTE_STORE");
+
+	char **newarg = new char*[6];
+	newarg[0] = id_fix;
+	newarg[1] = group->names[igroup];
+	newarg[2] = (char *) "STORE";
+	newarg[3] = (char *) "peratom";
+	newarg[4] = (char *) "1";
+	newarg[5] = (char *) "3";
+	modify->add_fix(6, newarg);
+	fix = (FixStore *)modify->fix[modify->nfix - 1];
+	delete[] newarg;
+}
+
+//JCO added to start testing the storing positions 
+void ComputeCCF::set_arrays(int i)
+{
+	double **xoriginal = fix->astore;
+	double **x = x->atom;
+	xoriginal[i][0] = x[i][0];
+	xoriginal[i][1] = x[i][1];
+	xoriginal[i][2] = x[i][2];
+	
+}
+

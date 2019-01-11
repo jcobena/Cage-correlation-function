@@ -1,0 +1,86 @@
+
+#Test t2
+#Variables-----------------------------------------------------------------#
+variable T1 equal 	0.72
+variable T2 equal   1.44 
+variable L0 equal 	0.0
+variable L1 equal 	4.861
+
+
+#Initialization parameters-------------------------------------------------#
+units 	 		lj
+dimension		3
+boundary		p p p
+#atom_style		full
+
+
+#Box and atom creation-----------------------------------------------------#
+region 			R1 block ${L0} ${L1} ${L0} ${L1} ${L0} ${L1}
+create_box 		1 R1 
+lattice 		fcc 0.94
+create_atoms 	1 box 
+mass 			1 39.948 
+
+
+#LJ interactions-----------------------------------------------------------#
+pair_style lj/cut 2.937
+pair_coeff * * 1.0 1.0 2.937
+pair_modify shift yes
+
+#dump a movie every 100 tsteps---------------------------------------------#
+#dump	     dumpmovie all movie 100 movie1.mpg type type box yes 0.01 #zoom 2.0
+
+
+#create velocities 1-------------------------------------------------------#
+velocity all create  ${T1}  26493 dist gaussian 
+
+
+#print "started compute ccf" screen
+#--------------**Write your command here**---------------------------------#
+compute ccf_test all ccf cutoff -2
+dump d1 all custom 10 ccf-file-*.txt id c_ccf_test
+#--------------------------------------------------------------------------#
+#print "ended compute ccf" screen
+
+
+
+#print thermo prop every 500 steps-----------------------------------------#	
+thermo_style custom pe ke etotal temp  press  step #c_ccf_test
+thermo 500
+
+
+#set timestep, nve integrator and run1-------------------------------------#
+timestep 		0.0005
+fix 1nve all nve
+run 			60000
+unfix 1nve
+
+#Minimize sd style---------------------------------------------------------# 
+min_style sd
+minimize	0.0 0.0 10000 10000 	
+
+#create velocities 2-------------------------------------------------------#
+velocity all create  ${T2}  39566 dist gaussian 
+
+#set timestep, nve integrator and run2-------------------------------------#
+fix 2nve all nve
+run 			20000
+unfix 2nve
+
+
+
+#dump positions of atoms every 10 times steps------------------------------#
+#dump	        d1 all custom 1000 uni-file-*.txt id type element x y z xs ys zs xu yu zu xsu ysu zsu ix iy iz q vx vy vz
+#dump_modify     d1 pad 8 
+
+
+#set timestep, nve integrator and run3-------------------------------------#
+#fix 3nve all nve
+#run 			200000
+#unfix 3nve
+
+
+
+
+
+#END

@@ -3,10 +3,9 @@
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
-------------------------------------------------------------------------- */
-
 /* ----------------------------------------------------------------------
-   Contributing author:  
+   Contributing author:  Jose Cobena-Reyes
+                         Spencer Ortega
 ------------------------------------------------------------------------- */
 
 #include <cstring>

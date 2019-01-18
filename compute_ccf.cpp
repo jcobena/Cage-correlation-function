@@ -25,6 +25,9 @@
 #include "error.h"
 #include "math_const.h"
 
+#include "fix_store_nl.h"
+#include <iostream>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace std;
@@ -42,6 +45,11 @@ ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
   qlist(NULL), distsq(NULL), nearest(NULL), rlist(NULL),
   qnarray(NULL), qnm_r(NULL), qnm_i(NULL)
 {
+  cout << "\n-----------------\n\n\n"
+       << "inside compute ccf constructor!"
+       << "\n\n\n-----------------\n";
+
+
   if (narg < 3 ) error->all(FLERR,"Illegal compute ccf command");
 
   // set default values for optional args
@@ -130,6 +138,13 @@ ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
   maxneigh = 0;
+
+  char **fixarg = new char*[3];
+  fixarg[0] = (char *) "store_nl";
+  fixarg[1] = (char *) "all";
+  fixarg[2] = (char *) "store_nl";
+  modify->add_fix(3,fixarg);
+  delete [] fixarg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -175,6 +190,13 @@ void ComputeCCF::init()
     if (strcmp(modify->compute[i]->style,"ccf") == 0) count++;
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute ccf");
+
+  ifix_storenl = -1;
+  for (int i = 0; i < modify->nfix; i++)
+    if (strcmp(modify->fix[i]->style,"store_nl") == 0) ifix_storenl = i;
+  if (ifix_storenl == -1)
+    error->all(FLERR,"Compute ccf requires store nl fix");
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -217,6 +239,10 @@ void ComputeCCF::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
+
+  // Retrieve NL at time = 0 from fix
+  tagint **partner = ((FixStoreNL *) modify->fix[ifix_storenl])->partner;
+  int *npartner = ((FixStoreNL *) modify->fix[ifix_storenl])->npartner;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

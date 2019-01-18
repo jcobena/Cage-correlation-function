@@ -30,17 +30,21 @@
 #include "memory.h"
 #include "error.h"
 
+#include <iostream>
+using namespace std;
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixStoreNl::FixStoreNl(LAMMPS *lmp,int narg, char **arg) :
+FixStoreNL::FixStoreNL(LAMMPS *lmp,int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
 
-  error->warning(FLERR,"Inside fixstorenl constructor");
-
+  cout << "\n-----------------\n\n\n"
+       << "inside fixe store nl constructor!"
+       << "\n\n\n-----------------\n";
   // we need these flags
   restart_global = 1;
   restart_peratom = 1;
@@ -69,7 +73,7 @@ FixStoreNl::FixStoreNl(LAMMPS *lmp,int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixStoreNl::~FixStoreNl()
+FixStoreNL::~FixStoreNL()
 {
   // unregister this fix so atom class doesn't invoke it any more
 
@@ -84,7 +88,7 @@ FixStoreNl::~FixStoreNl()
 
 /* ---------------------------------------------------------------------- */
 
-int FixStoreNl::setmask()
+int FixStoreNL::setmask()
 {
   int mask = 0;
   return mask;
@@ -92,7 +96,7 @@ int FixStoreNl::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixStoreNl::init()
+void FixStoreNL::init()
 {
   if (!first) return;
 
@@ -109,7 +113,7 @@ void FixStoreNl::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixStoreNl::init_list(int /*id*/, NeighList *ptr)
+void FixStoreNL::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -119,7 +123,7 @@ void FixStoreNl::init_list(int /*id*/, NeighList *ptr)
    must be done in setup (not init) since fix init comes before neigh init
 ------------------------------------------------------------------------- */
 
-void FixStoreNl::setup(int /*vflag*/)
+void FixStoreNL::setup(int /*vflag*/)
 {
   int i,j,ii,jj,itype,jtype,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -246,7 +250,7 @@ void FixStoreNl::setup(int /*vflag*/)
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double FixStoreNl::memory_usage()
+double FixStoreNL::memory_usage()
 {
   int nmax = atom->nmax;
   int bytes = nmax * sizeof(int);
@@ -259,7 +263,7 @@ double FixStoreNl::memory_usage()
    allocate local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixStoreNl::grow_arrays(int nmax)
+void FixStoreNL::grow_arrays(int nmax)
 {
    memory->grow(npartner,nmax,"peri_neigh:npartner");
    memory->grow(partner,nmax,maxpartner,"peri_neigh:partner");
@@ -269,7 +273,7 @@ void FixStoreNl::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixStoreNl::copy_arrays(int i, int j, int /*delflag*/)
+void FixStoreNL::copy_arrays(int i, int j, int /*delflag*/)
 {
   npartner[j] = npartner[i];
   for (int m = 0; m < npartner[j]; m++) {
@@ -281,7 +285,7 @@ void FixStoreNl::copy_arrays(int i, int j, int /*delflag*/)
    pack values in local atom-based arrays for exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixStoreNl::pack_exchange(int i, double *buf)
+int FixStoreNL::pack_exchange(int i, double *buf)
 {
   // compact list by eliminating partner = 0 entries
   // set buf[0] after compaction
@@ -299,7 +303,7 @@ int FixStoreNl::pack_exchange(int i, double *buf)
    unpack values in local atom-based arrays from exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixStoreNl::unpack_exchange(int nlocal, double *buf)
+int FixStoreNL::unpack_exchange(int nlocal, double *buf)
 {
   int m = 0;
   // size of packed nl
@@ -315,7 +319,7 @@ int FixStoreNl::unpack_exchange(int nlocal, double *buf)
    pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
-void FixStoreNl::write_restart(FILE *fp)
+void FixStoreNL::write_restart(FILE *fp)
 {
   int n = 0;
   double list[2];
@@ -333,7 +337,7 @@ void FixStoreNl::write_restart(FILE *fp)
    pack values in local atom-based arrays for restart file
 ------------------------------------------------------------------------- */
 
-int FixStoreNl::pack_restart(int i, double *buf)
+int FixStoreNL::pack_restart(int i, double *buf)
 {
   int m = 0;
   buf[m++] = npartner[i];
@@ -347,7 +351,7 @@ int FixStoreNl::pack_restart(int i, double *buf)
    unpack values from atom->extra array to restart the fix
 ------------------------------------------------------------------------- */
 
-void FixStoreNl::unpack_restart(int nlocal, int nth)
+void FixStoreNL::unpack_restart(int nlocal, int nth)
 {
 
   double **extra = atom->extra;

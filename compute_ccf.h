@@ -40,6 +40,7 @@ class ComputeCCF : public Compute {
   double **qnarray;
   double **qnm_r;
   double **qnm_i;
+  int ifix_storenl;
 
   void select3(int, int, double *, int *, double **);
   void calc_boop(double **rlist, int numNeighbors,

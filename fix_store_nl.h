@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(STORE_NL,FixStoreNl)
+FixStyle(store_nl,FixStoreNL)
 
 #else
 
@@ -24,14 +24,14 @@ FixStyle(STORE_NL,FixStoreNl)
 
 namespace LAMMPS_NS {
 
-class FixStoreNl : public Fix {
+class FixStoreNL : public Fix {
   friend class ComputeCCF;
 
  public:
   // constructor
-  FixStoreNl(class LAMMPS *,int, char **);
+  FixStoreNL(class LAMMPS *,int, char **);
   // deconstructor
-  virtual ~FixStoreNl();
+  virtual ~FixStoreNL();
   // required
   int setmask();
   // before run

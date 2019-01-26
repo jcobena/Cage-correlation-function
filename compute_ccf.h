@@ -33,22 +33,12 @@ class ComputeCCF : public Compute {
  private:
   int nmax,maxneigh,ncol,nnn;
   class NeighList *list;
-  double *distsq;
   int *nearest;
-  double **rlist;
   int qmax;
   double **qnarray;
-  double **qnm_r;
-  double **qnm_i;
   int ifix_storenl;
 
-  void select3(int, int, double *, int *, double **);
-  void calc_boop(double **rlist, int numNeighbors,
-                 double qn[], int nlist[], int nnlist);
-  double dist(const double r[]);
 
-  double polar_prefactor(int, int, double);
-  double associated_legendre(int, int, double);
 };
 
 }

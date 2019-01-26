@@ -26,17 +26,23 @@ class ComputeCCF : public Compute {
   void compute_peratom();
   double memory_usage();
   double cutsq;
-  int iqlcomp, qlcomp, qlcompflag;
-  int *qlist;
-  int nqlist;
+
+  // delete
+  // int iqlcomp, qlcomp, qlcompflag;
+  // int *qlist;
+  // int nqlist;
 
  private:
   int nmax,maxneigh,ncol,nnn;
   class NeighList *list;
-  int *nearest;
-  int qmax;
-  double **qnarray;
+  // int *nearest;
+
+  // used for fix store nl
   int ifix_storenl;
+
+  // delete
+  // int qmax;
+  // double **qnarray;
 
 
 };

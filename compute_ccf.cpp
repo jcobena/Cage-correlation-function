@@ -32,41 +32,34 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace std;
 
-#ifdef DBL_EPSILON
-  #define MY_EPSILON (10.0*DBL_EPSILON)
-#else
-  #define MY_EPSILON (10.0*2.220446049250313e-16)
-#endif
+
 
 /* ---------------------------------------------------------------------- */
 
 ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  nearest(NULL), qnarray(NULL), qlist(NULL)
+  Compute(lmp, narg, arg)
 {
   cout << "\n-----------------\n\n\n"
        << "inside compute ccf constructor!"
        << "\n\n\n-----------------\n";
 
 
-  if (narg < 3 ) error->all(FLERR,"Illegal compute ccf command");
-
   // set default values for optional args
 
-  nnn = 12;
+  //nnn = 12;
   cutsq = 0.0;
-  qlcompflag = 0;
+  // qlcompflag = 0;
 
   // specify which orders to request
 
-  nqlist = 5;
-  memory->create(qlist,nqlist,"ccf:qlist");
-  qlist[0] = 4;
-  qlist[1] = 6;
-  qlist[2] = 8;
-  qlist[3] = 10;
-  qlist[4] = 12;
-  qmax = 12;
+  // nqlist = 5;
+  // memory->create(qlist,nqlist,"ccf:qlist");
+  // qlist[0] = 4;
+  // qlist[1] = 6;
+  // qlist[2] = 8;
+  // qlist[3] = 10;
+  // qlist[4] = 12;
+  // qmax = 12;
 
 
   // process args
@@ -85,14 +78,15 @@ ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
 
 
 
-  if (qlcompflag) ncol = nqlist + 2*(2*qlcomp+1);
-  else ncol = nqlist;
+  // if (qlcompflag) ncol = nqlist + 2*(2*qlcomp+1);
+  // else ncol = nqlist;
 
   peratom_flag = 1;
-  size_peratom_cols = ncol;
+  size_peratom_cols = 0; //0 means vector, same than in damage atom
+  size_vector_variable = 1;
 
-  nmax = 0;
-  maxneigh = 0;
+  //nmax = 1;
+  // maxneigh = 0;
 
   // char **fixarg = new char*[3];
   // fixarg[0] = (char *) "store_nl";
@@ -106,9 +100,9 @@ ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCCF::~ComputeCCF()
 {
-  memory->destroy(qnarray);
-  memory->destroy(nearest);
-  memory->destroy(qlist);
+  // memory->destroy(qlist);
+  // memory->destroy(qnarray);
+  // memory->destroy(nearest);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -165,12 +159,12 @@ void ComputeCCF::compute_peratom()
 
   // grow order parameter array if necessary
 
-  if (atom->nmax > nmax) {
-    memory->destroy(qnarray);
-    nmax = atom->nmax;
-    memory->create(qnarray,nmax,ncol,"ccf:qnarray");
-    array_atom = qnarray;
-  }
+  // if (atom->nmax > nmax) {
+  //   // memory->destroy(qnarray);
+  //   nmax = atom->nmax;
+  //   // memory->create(qnarray,nmax,ncol,"ccf:qnarray");
+  //   // array_atom = qnarray;
+  // }
 
   // invoke full neighbor list (will copy or build if necessary)
 
@@ -202,14 +196,20 @@ void ComputeCCF::compute_peratom()
 
       // insure distsq and nearest arrays are long enough
 
-      if (jnum > maxneigh) {
-        memory->destroy(nearest);
-        maxneigh = jnum;
-        memory->create(nearest,maxneigh,"ccf:nearest");
-      }
+      // if (jnum > maxneigh) {
+      //   memory->destroy(nearest);
+      //   maxneigh = jnum;
+      //   memory->create(nearest,maxneigh,"ccf:nearest");
+      // }
 
       // loop over list of all neighbors within force cutoff
       // nearest[] = atom indices of neighbors
+
+      vector_atom = new double[jnum];
+      // for(int iii = 0; iii < jnum; iii++){
+      //   vector_atom[iii] = 0;
+      // }
+      int* nearest = new int[jnum];
 
       int ncount = 0;
       for (jj = 0; jj < jnum; jj++) {
@@ -228,6 +228,10 @@ void ComputeCCF::compute_peratom()
 
       // compare nearest with partner[i]
 
+      // for(int iii = 0; )
+
+      delete [] nearest;
+      delete [] vector_atom;
     }
   }
 }
@@ -238,8 +242,10 @@ void ComputeCCF::compute_peratom()
 
 double ComputeCCF::memory_usage()
 {
-  double bytes = ncol*nmax * sizeof(double);
-  bytes += (qmax*(2*qmax+1)+maxneigh*4) * sizeof(double);
-  bytes += (nqlist+maxneigh) * sizeof(int);
+  // double bytes = ncol*nmax * sizeof(double);
+  // bytes += (qmax*(2*qmax+1)+maxneigh*4) * sizeof(double);
+  // bytes += (nqlist+maxneigh) * sizeof(int);
+  // return bytes;
+  double bytes = nmax * sizeof(double);
   return bytes;
 }

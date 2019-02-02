@@ -43,7 +43,7 @@ FixStoreNL::FixStoreNL(LAMMPS *lmp,int narg, char **arg) :
 {
 
   cout << "\n-----------------\n\n\n"
-       << "inside fixe store nl constructor!"
+       << "inside fix store nl constructor!"
        << "\n\n\n-----------------\n";
   // we need these flags
   restart_global = 1;
@@ -125,6 +125,9 @@ void FixStoreNL::init_list(int /*id*/, NeighList *ptr)
 
 void FixStoreNL::setup(int /*vflag*/)
 {
+  cout << "\n-----------------\n\n\n"
+       << "inside fix store nl setup!"
+       << "\n\n\n-----------------\n";
   int i,j,ii,jj,itype,jtype,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh;
@@ -153,6 +156,7 @@ void FixStoreNL::setup(int /*vflag*/)
   // scan neighbor list to set maxpartner
   //Pair *anypair = force->pair_match("peri",0);
   //double **cutsq = anypair->cutsq;
+  // cout << "storenl: first for loop\n";
   double cutsq = 2.25;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -176,15 +180,20 @@ void FixStoreNL::setup(int /*vflag*/)
       // if (rsq <= cutsq[itype][jtype]) npartner[i]++;
       if (rsq <= cutsq) npartner[i]++;
     }
+    // cout << "atom " << i << " has npartners: "<< npartner[i]<<endl;
   }
 
+  // cout << "storenl: END first for loop\n";
 
+
+  // cout << "storenl: start mpi\n";
   // global max neighbor list size
   maxpartner = 0;
   for (i = 0; i < nlocal; i++) maxpartner = MAX(maxpartner,npartner[i]);
   int maxall;
   MPI_Allreduce(&maxpartner,&maxall,1,MPI_INT,MPI_MAX,world);
   maxpartner = maxall;
+  // cout << "storenl: END mpi\n";
 
 
   // realloc arrays with correct value for maxpartner
@@ -205,6 +214,8 @@ void FixStoreNL::setup(int /*vflag*/)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    // cout << "starting for loop for " << i << endl;
+    npartner[i] = 0;
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -218,12 +229,14 @@ void FixStoreNL::setup(int /*vflag*/)
       // if (rsq <= cutsq[itype][jtype]) {
       if (rsq <= cutsq){
         // store in array
-        partner[i][npartner[i]] = tag[j];
+
+        partner[i][npartner[i]] = atom->tag[j];
 
         // increment count
         npartner[i]++;
       }
     }
+    // cout << "npartner=" << npartner[i] << endl;
   }
 
   // sanity check: does any atom appear twice in any neigborlist?
@@ -243,7 +256,7 @@ void FixStoreNL::setup(int /*vflag*/)
   //     }
   //   }
   // }
-
+  cout << "finsished store nl"<<endl;
 }
 
 /* ----------------------------------------------------------------------

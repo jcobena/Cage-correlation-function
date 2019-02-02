@@ -25,7 +25,7 @@
 #include "error.h"
 #include "math_const.h"
 
-// #include "fix_store_nl.h"
+#include "fix_store_nl.h"
 #include <iostream>
 
 using namespace LAMMPS_NS;
@@ -88,12 +88,12 @@ ComputeCCF::ComputeCCF(LAMMPS *lmp, int narg, char **arg) :
   //nmax = 1;
   // maxneigh = 0;
 
-  // char **fixarg = new char*[3];
-  // fixarg[0] = (char *) "store_nl";
-  // fixarg[1] = (char *) "all";
-  // fixarg[2] = (char *) "store_nl";
-  // modify->add_fix(3,fixarg);
-  // delete [] fixarg;
+  char **fixarg = new char*[3];
+  fixarg[0] = (char *) "store_nl";
+  fixarg[1] = (char *) "all";
+  fixarg[2] = (char *) "store_nl";
+  modify->add_fix(3,fixarg);
+  delete [] fixarg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -182,12 +182,20 @@ void ComputeCCF::compute_peratom()
   int *mask = atom->mask;
 
   // Retrieve NL at time = 0 from fix
-  // tagint **partner = ((FixStoreNL *) modify->fix[ifix_storenl])->partner;
-  // int *npartner = ((FixStoreNL *) modify->fix[ifix_storenl])->npartner;
-
+  cout << "before fix store call" << endl;
+  tagint **partner = ((FixStoreNL *) modify->fix[ifix_storenl])->partner;
+  int *npartner = ((FixStoreNL *) modify->fix[ifix_storenl])->npartner;
+  cout << "after fix store call" << endl;
+  
+  vector_atom = new double[inum];
+  for(int ii = 0; ii < inum; ii++){
+    vector_atom[ii] = -1;
+  }
   for (ii = 0; ii < inum; ii++) {
+
     i = ilist[ii];
     if (mask[i] & groupbit) {
+      vector_atom[ii] = ii;
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];
@@ -205,11 +213,8 @@ void ComputeCCF::compute_peratom()
       // loop over list of all neighbors within force cutoff
       // nearest[] = atom indices of neighbors
 
-      vector_atom = new double[jnum];
-      // for(int iii = 0; iii < jnum; iii++){
-      //   vector_atom[iii] = 0;
-      // }
-      int* nearest = new int[jnum];
+
+      // int* nearest = new int[jnum];
 
       int ncount = 0;
       for (jj = 0; jj < jnum; jj++) {
@@ -221,17 +226,20 @@ void ComputeCCF::compute_peratom()
         delz = ztmp - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
         if (rsq < cutsq) {
+          ncount++;
 
-          nearest[ncount++] = j;
         }
       }
+
+      // dump neighbor count for each local atom i
+      vector_atom[ii] = ncount;
 
       // compare nearest with partner[i]
 
       // for(int iii = 0; )
 
-      delete [] nearest;
-      delete [] vector_atom;
+      // delete [] nearest;
+      // delete [] vector_atom;
     }
   }
 }

@@ -1,0 +1,334 @@
+inside fix store nl constructor!
+cutoff=3.0625
+
+inside fix store nl grow_arrays! 0
+
+inside fix store nl init!
+
+inside fix store nl init_list!
+
+inside fix store nl pack_exchange! 0
+i = 3
+tag[i] = 72
+inside fix store nl copy_arrays! 0
+copy 48 to 3
+
+inside fix store nl pack_exchange! 0
+i = 11
+tag[i] = 62
+inside fix store nl copy_arrays! 0
+copy 47 to 11
+
+inside fix store nl pack_exchange! 0
+i = 11
+tag[i] = 69
+inside fix store nl copy_arrays! 0
+copy 46 to 11
+
+inside fix store nl pack_exchange! 0
+i = 41
+tag[i] = 61
+inside fix store nl copy_arrays! 0
+copy 45 to 41
+
+inside fix store nl pack_exchange! 0
+i = 41
+tag[i] = 66
+inside fix store nl copy_arrays! 0
+copy 44 to 41
+
+inside fix store nl pack_exchange! 0
+i = 41
+tag[i] = 64
+inside fix store nl copy_arrays! 0
+copy 43 to 41
+
+inside fix store nl pack_exchange! 0
+i = 41
+tag[i] = 71
+inside fix store nl copy_arrays! 0
+copy 42 to 41
+
+inside fix store nl unpack_exchange! 0
+nlocal = 42
+tag[nlocal] = 18
+
+finished unpack
+inside fix store nl unpack_exchange! 0
+nlocal = 43
+tag[nlocal] = 22
+
+finished unpack
+inside fix store nl unpack_exchange! 0
+nlocal = 44
+tag[nlocal] = 29
+
+finished unpack
+inside fix store nl unpack_exchange! 0
+nlocal = 45
+tag[nlocal] = 21
+
+finished unpack
+inside fix store nl unpack_exchange! 0
+nlocal = 46
+tag[nlocal] = 26
+
+finished unpack
+inside fix store nl unpack_exchange! 0
+nlocal = 47
+tag[nlocal] = 33
+
+finished unpack
+inside fix store nl unpack_exchange! 0
+nlocal = 48
+tag[nlocal] = 14
+
+finished unpack
+inside fix store nl unpack_exchange! 0
+nlocal = 49
+tag[nlocal] = 1
+
+finished unpack
+inside fix store nl unpack_exchange! 0
+nlocal = 50
+tag[nlocal] = 34
+
+finished unpack
+inside fix store nl unpack_exchange! 0
+nlocal = 51
+tag[nlocal] = 25
+
+finished unpack
+inside fix store nl unpack_exchange! 0
+nlocal = 52
+tag[nlocal] = 13
+
+finished unpack
+inside fix store nl unpack_exchange! 0
+nlocal = 53
+tag[nlocal] = 10
+
+finished unpack
+inside fix store nl copy_arrays! 0
+copy 2 to 54
+
+inside fix store nl copy_arrays! 0
+copy 4 to 2
+
+inside fix store nl copy_arrays! 0
+copy 16 to 4
+
+inside fix store nl copy_arrays! 0
+copy 40 to 16
+
+inside fix store nl copy_arrays! 0
+copy 46 to 40
+
+inside fix store nl copy_arrays! 0
+copy 34 to 46
+
+inside fix store nl copy_arrays! 0
+copy 43 to 34
+
+inside fix store nl copy_arrays! 0
+copy 18 to 43
+
+inside fix store nl copy_arrays! 0
+copy 54 to 18
+
+inside fix store nl copy_arrays! 0
+copy 3 to 54
+
+inside fix store nl copy_arrays! 0
+copy 14 to 3
+
+inside fix store nl copy_arrays! 0
+copy 15 to 14
+
+inside fix store nl copy_arrays! 0
+copy 17 to 15
+
+inside fix store nl copy_arrays! 0
+copy 53 to 17
+
+inside fix store nl copy_arrays! 0
+copy 50 to 53
+
+inside fix store nl copy_arrays! 0
+copy 33 to 50
+
+inside fix store nl copy_arrays! 0
+copy 38 to 33
+
+inside fix store nl copy_arrays! 0
+copy 37 to 38
+
+inside fix store nl copy_arrays! 0
+copy 27 to 37
+
+inside fix store nl copy_arrays! 0
+copy 29 to 27
+
+inside fix store nl copy_arrays! 0
+copy 42 to 29
+
+inside fix store nl copy_arrays! 0
+copy 54 to 42
+
+inside fix store nl copy_arrays! 0
+copy 5 to 54
+
+inside fix store nl copy_arrays! 0
+copy 49 to 5
+
+inside fix store nl copy_arrays! 0
+copy 28 to 49
+
+inside fix store nl copy_arrays! 0
+copy 30 to 28
+
+inside fix store nl copy_arrays! 0
+copy 13 to 30
+
+inside fix store nl copy_arrays! 0
+copy 12 to 13
+
+inside fix store nl copy_arrays! 0
+copy 6 to 12
+
+inside fix store nl copy_arrays! 0
+copy 54 to 6
+
+inside fix store nl copy_arrays! 0
+copy 11 to 54
+
+inside fix store nl copy_arrays! 0
+copy 41 to 11
+
+inside fix store nl copy_arrays! 0
+copy 51 to 41
+
+inside fix store nl copy_arrays! 0
+copy 35 to 51
+
+inside fix store nl copy_arrays! 0
+copy 45 to 35
+
+inside fix store nl copy_arrays! 0
+copy 31 to 45
+
+inside fix store nl copy_arrays! 0
+copy 21 to 31
+
+inside fix store nl copy_arrays! 0
+copy 36 to 21
+
+inside fix store nl copy_arrays! 0
+copy 26 to 36
+
+inside fix store nl copy_arrays! 0
+copy 25 to 26
+
+inside fix store nl copy_arrays! 0
+copy 23 to 25
+
+inside fix store nl copy_arrays! 0
+copy 52 to 23
+
+inside fix store nl copy_arrays! 0
+copy 47 to 52
+
+inside fix store nl copy_arrays! 0
+copy 44 to 47
+
+inside fix store nl copy_arrays! 0
+copy 19 to 44
+
+inside fix store nl copy_arrays! 0
+copy 22 to 19
+
+inside fix store nl copy_arrays! 0
+copy 48 to 22
+
+inside fix store nl copy_arrays! 0
+copy 20 to 48
+
+inside fix store nl copy_arrays! 0
+copy 24 to 20
+
+inside fix store nl copy_arrays! 0
+copy 54 to 24
+
+-> inside fix store nl setup! 0
+
+inside fix store nl grow_arrays! 0
+
+---> altering nL
+finished fix store nl setup!
+inside fix store nl memory_usage! 0
+
+inside fix store nl pack_exchange! 467
+i = 11
+tag[i] = 6
+inside fix store nl copy_arrays! 467
+copy 53 to 11
+
+inside fix store nl pack_exchange! 467
+i = 12
+tag[i] = 9
+inside fix store nl copy_arrays! 467
+copy 52 to 12
+
+inside fix store nl pack_exchange! 467
+i = 12
+tag[i] = 33
+inside fix store nl copy_arrays! 467
+copy 51 to 12
+
+inside fix store nl pack_exchange! 467
+i = 22
+tag[i] = 14
+inside fix store nl copy_arrays! 467
+copy 50 to 22
+
+inside fix store nl pack_exchange! 467
+i = 23
+tag[i] = 13
+inside fix store nl copy_arrays! 467
+copy 49 to 23
+
+inside fix store nl pack_exchange! 467
+i = 29
+tag[i] = 18
+inside fix store nl copy_arrays! 467
+copy 48 to 29
+
+inside fix store nl pack_exchange! 467
+i = 35
+tag[i] = 21
+inside fix store nl copy_arrays! 467
+copy 47 to 35
+
+inside fix store nl pack_exchange! 467
+i = 40
+tag[i] = 26
+inside fix store nl copy_arrays! 467
+copy 46 to 40
+
+inside fix store nl pack_exchange! 467
+i = 41
+tag[i] = 25
+inside fix store nl copy_arrays! 467
+copy 45 to 41
+
+inside fix store nl pack_exchange! 467
+i = 42
+tag[i] = 30
+inside fix store nl copy_arrays! 467
+copy 44 to 42
+
+inside fix store nl unpack_exchange! 467
+nlocal = 44
+tag[nlocal] = 56
+
+finished unpack

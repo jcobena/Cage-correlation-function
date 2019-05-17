@@ -31,6 +31,7 @@ class ComputeCCF : public Compute {
   // int iqlcomp, qlcomp, qlcompflag;
   // int *qlist;
   // int nqlist;
+  int t;
 
  private:
   int nmax,maxneigh,ncol,nnn;

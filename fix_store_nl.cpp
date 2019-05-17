@@ -38,13 +38,33 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixStoreNL::FixStoreNL(LAMMPS *lmp,int narg, char **arg) :
+FixStoreNL::FixStoreNL(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
 
-  cout << "\n-----------------\n\n\n"
-       << "inside fix store nl constructor!"
-       << "\n\n\n-----------------\n";
+  // stringify mpi rank number, time index
+  stringstream ss;
+  // mpi rank
+  ss << comm->me;
+  string p;
+  ss >> p;
+  string filename = "./out_fix/fixstorenl-"+p;
+  // myfile.open(filename.c_str(), std::ofstream::app);
+  myfile.open(filename.c_str());
+
+
+
+
+
+  // convert cutoff (arg[3]) to numeric
+  double cutoff = force->numeric(FLERR,arg[3]);
+  // store cutoff^2
+  cutsq = cutoff*cutoff;
+
+  myfile << "inside fix store nl constructor!\n"
+         << "cutoff=" << cutsq << endl << endl;
+
+
   // we need these flags
   restart_global = 1;
   restart_peratom = 1;
@@ -59,7 +79,8 @@ FixStoreNL::FixStoreNL(LAMMPS *lmp,int narg, char **arg) :
   partner = NULL;
 
   // keep for now
-  grow_arrays(atom->nmax);
+  // grow_arrays(atom->nmax);
+  grow_arrays(atom->natoms);
   atom->add_callback(0);
   atom->add_callback(1);
 
@@ -75,6 +96,10 @@ FixStoreNL::FixStoreNL(LAMMPS *lmp,int narg, char **arg) :
 
 FixStoreNL::~FixStoreNL()
 {
+
+  myfile << "inside fix store nl deconstructor!\n\n"
+         << "-----------------------------------------\n\n";
+
   // unregister this fix so atom class doesn't invoke it any more
 
   atom->delete_callback(id,0);
@@ -84,6 +109,8 @@ FixStoreNL::~FixStoreNL()
 
   memory->destroy(npartner);
   memory->destroy(partner);
+
+  myfile.close();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,6 +125,9 @@ int FixStoreNL::setmask()
 
 void FixStoreNL::init()
 {
+
+  myfile << "inside fix store nl init!\n\n";
+
   if (!first) return;
 
   // need a full neighbor list once
@@ -115,6 +145,8 @@ void FixStoreNL::init()
 
 void FixStoreNL::init_list(int /*id*/, NeighList *ptr)
 {
+  myfile << "inside fix store nl init_list!\n\n";
+
   list = ptr;
 }
 
@@ -125,9 +157,8 @@ void FixStoreNL::init_list(int /*id*/, NeighList *ptr)
 
 void FixStoreNL::setup(int /*vflag*/)
 {
-  cout << "\n-----------------\n\n\n"
-       << "inside fix store nl setup!"
-       << "\n\n\n-----------------\n";
+  myfile << "-> inside fix store nl setup! " << update->ntimestep << endl << endl;
+
   int i,j,ii,jj,itype,jtype,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh;
@@ -157,7 +188,7 @@ void FixStoreNL::setup(int /*vflag*/)
   //Pair *anypair = force->pair_match("peri",0);
   //double **cutsq = anypair->cutsq;
   // cout << "storenl: first for loop\n";
-  double cutsq = 2.25;
+  // double cutsq = mycutoff * mycutoff;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -201,12 +232,26 @@ void FixStoreNL::setup(int /*vflag*/)
   memory->destroy(npartner);
   npartner = NULL;
   partner = NULL;
-  grow_arrays(atom->nmax);
+
+  // myfile << "atom->nmax = " << atom->nmax << endl;
+  // myfile << "inum = " << inum << endl;
+
+  // grow_arrays(atom->nmax);
+  grow_arrays(atom->natoms);
 
 
   // save actual values of nl
+  myfile << "---> altering nL" << endl;
   for (ii = 0; ii < inum; ii++) {
+    
     i = ilist[ii];
+
+    
+    // myfile << atom->tag[i] << endl;
+
+    // myfile << "------> ii = " << ii << endl;
+    // myfile << "------> i = " << i << endl;
+
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -214,9 +259,9 @@ void FixStoreNL::setup(int /*vflag*/)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    // cout << "starting for loop for " << i << endl;
     npartner[i] = 0;
     for (jj = 0; jj < jnum; jj++) {
+    
       j = jlist[jj];
       j &= NEIGHMASK;
 
@@ -228,16 +273,21 @@ void FixStoreNL::setup(int /*vflag*/)
 
       // if (rsq <= cutsq[itype][jtype]) {
       if (rsq <= cutsq){
-        // store in array
+        
+        // myfile << "---------> j, tag[j] = " << j <<", "<< atom->tag[j] << endl;
 
+        // store in array
         partner[i][npartner[i]] = atom->tag[j];
 
         // increment count
         npartner[i]++;
       }
     }
+    // myfile << "------> finished " << endl;
     // cout << "npartner=" << npartner[i] << endl;
   }
+  // myfile << "---> done altering nL" << endl;
+
 
   // sanity check: does any atom appear twice in any neigborlist?
   // should only be possible if using pbc and domain < 2*delta
@@ -256,7 +306,10 @@ void FixStoreNL::setup(int /*vflag*/)
   //     }
   //   }
   // }
-  cout << "finsished store nl"<<endl;
+
+
+  myfile << "finished fix store nl setup!" << endl;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -265,8 +318,16 @@ void FixStoreNL::setup(int /*vflag*/)
 
 double FixStoreNL::memory_usage()
 {
-  int nmax = atom->nmax;
-  int bytes = nmax * sizeof(int);
+  myfile << "inside fix store nl memory_usage! " << update->ntimestep << endl << endl;
+
+  // int nmax = atom->nmax;
+  int nmax = atom->natoms;
+
+  int bytes = 0;
+  // allocate memory for npartner[nmax]
+  bytes += nmax * sizeof(int);
+
+  // allocate memory for partners[nmax][maxpartner]
   bytes += nmax*maxpartner * sizeof(tagint);
 
   return bytes;
@@ -278,8 +339,10 @@ double FixStoreNL::memory_usage()
 
 void FixStoreNL::grow_arrays(int nmax)
 {
-   memory->grow(npartner,nmax,"peri_neigh:npartner");
-   memory->grow(partner,nmax,maxpartner,"peri_neigh:partner");
+  myfile << "inside fix store nl grow_arrays! " << update->ntimestep << endl << endl;
+
+  memory->grow(npartner,nmax,"store_nl:npartner");
+  memory->grow(partner,nmax,maxpartner,"store_nl:partner");
 }
 
 /* ----------------------------------------------------------------------
@@ -288,6 +351,8 @@ void FixStoreNL::grow_arrays(int nmax)
 
 void FixStoreNL::copy_arrays(int i, int j, int /*delflag*/)
 {
+  myfile << "inside fix store nl copy_arrays! " << update->ntimestep << endl;
+  myfile << "copy " << i << " to " << j << endl << endl;
   npartner[j] = npartner[i];
   for (int m = 0; m < npartner[j]; m++) {
     partner[j][m] = partner[i][m];
@@ -300,6 +365,9 @@ void FixStoreNL::copy_arrays(int i, int j, int /*delflag*/)
 
 int FixStoreNL::pack_exchange(int i, double *buf)
 {
+  myfile << "inside fix store nl pack_exchange! "<< update->ntimestep << endl;
+  myfile << "i = " << i << endl;
+  myfile << "tag[i] = " << atom->tag[i] << endl;
   // compact list by eliminating partner = 0 entries
   // set buf[0] after compaction
 
@@ -318,15 +386,52 @@ int FixStoreNL::pack_exchange(int i, double *buf)
 
 int FixStoreNL::unpack_exchange(int nlocal, double *buf)
 {
+  myfile << "inside fix store nl unpack_exchange! " << update->ntimestep << endl;
+  myfile << "nlocal = " << nlocal << endl;
+  myfile << "tag[nlocal] = " << atom->tag[nlocal] << endl << endl;
   int m = 0;
   // size of packed nl
   npartner[nlocal] = static_cast<int> (buf[m++]);
   for (int n = 0; n < npartner[nlocal]; n++) {
     partner[nlocal][n] = static_cast<tagint> (buf[m++]);
   }
-
+  myfile << "finished unpack" << endl;
   return m;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* ----------------------------------------------------------------------
    pack entire state of Fix into one write
@@ -334,6 +439,7 @@ int FixStoreNL::unpack_exchange(int nlocal, double *buf)
 
 void FixStoreNL::write_restart(FILE *fp)
 {
+  myfile << "inside fix store nl write_restart! " << update->ntimestep << endl;
   int n = 0;
   double list[2];
   list[n++] = first;
@@ -352,6 +458,7 @@ void FixStoreNL::write_restart(FILE *fp)
 
 int FixStoreNL::pack_restart(int i, double *buf)
 {
+  myfile << "inside fix store nl pack_restart! " << update->ntimestep << endl << endl;
   int m = 0;
   buf[m++] = npartner[i];
   for (int n = 0; n < npartner[i]; n++) {
@@ -366,6 +473,7 @@ int FixStoreNL::pack_restart(int i, double *buf)
 
 void FixStoreNL::unpack_restart(int nlocal, int nth)
 {
+  myfile << "inside fix store nl unpack_restart! "<< update->ntimestep << endl << endl;
 
   double **extra = atom->extra;
 

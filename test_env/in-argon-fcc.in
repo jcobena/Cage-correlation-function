@@ -1,11 +1,11 @@
-
 #Test t2
 #Variables-----------------------------------------------------------------#
 variable T1 equal 	0.72
-variable T2 equal   1.44 
+variable T2 equal   1.44  #0.9 
 variable L0 equal 	0.0
 variable L1 equal 	4.861
 
+#timestep 0.005
 
 #Initialization parameters-------------------------------------------------#
 units 	 		lj
@@ -13,9 +13,7 @@ dimension		3
 boundary		p p p
 #atom_style		full
 
-atom_modify map yes
-
-
+#atom_modify map array #yes
 
 #Box and atom creation-----------------------------------------------------#
 region 			R1 block ${L0} ${L1} ${L0} ${L1} ${L0} ${L1}
@@ -50,65 +48,27 @@ fix 1nve all nve
 run 			60000
 unfix 1nve
 
-
-
-
-# #Minimize sd style---------------------------------------------------------# 
 min_style sd
 minimize	0.0 0.0 10000 10000 	
 
+reset_timestep 0
 
+velocity all create  ${T2}  54616 dist gaussian #39566
 
-# call to compute ccf
-# compute ccf_test all ccf cutoff 2
-# dump d1 all custom 1000 ccf-file-*.txt id c_ccf_test
-#compute stein3 all ccf cutoff 1.5
-compute stein3 all ccf  cutoff 1.5  degrees 1 3 components 3 nnn NULL
+thermo 100
 
-dump            dump_stein3 all custom 10000 steinh3-*.txt id c_stein3[*]
-
-#dump       1 all custom 500 argon.argon id element type x y z
-
-#dump_modify   1 element Ar
-#run 0
-#undump 1
-
-
-
-# dump      adump1 all movie 10 movie1.mpg type type box yes 0.1 zoom 1.0 subbox yes 0.01
-# dump_modify adump1 adiam 1 0.1
-#-----dump an image
-# dump       22 all image 10 image1-*.jpeg type type atom yes adiam 0.4 box yes 0.05 subbox yes 0.01
-# run 30
-# undump 22
-
-
-#create velocities 2-------------------------------------------------------#
-velocity all create  ${T2}  39566 dist gaussian 
-
-#set timestep, nve integrator and run2-------------------------------------#
 fix 2nve all nve
 
-# ComputeCCF() is invoked here
-run 			20000
+compute stein3 all ccf  cutoff 1.75
+
+dump  dump_stein3 all custom 400 ./out_dump/dumpfile-*.txt id c_stein3[*]
+
+# performs migration
+run 	500
+
+# no migration
+#run   400
 
 unfix 2nve
-
-
-
-
-# dump positions of atoms every 10 times steps------------------------------#
-# dump	        d1 all custom 1000 uni-file-*.txt id type element x y z xs ys zs xu yu zu xsu ysu zsu ix iy iz q vx vy vz
-# dump_modify     d1 pad 8 
-
-
-# set timestep, nve integrator and run3-------------------------------------#
-# fix 3nve all nve
-# run 			200000
-# unfix 3nve
-
-
-
-
 
 #END

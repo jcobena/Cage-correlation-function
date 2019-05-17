@@ -22,6 +22,15 @@ FixStyle(store_nl,FixStoreNL)
 
 #include "fix.h"
 
+// DEBUG
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+// using namespace std;
+
+
+
 namespace LAMMPS_NS {
 
 class FixStoreNL : public Fix {
@@ -60,6 +69,8 @@ class FixStoreNL : public Fix {
   // int size_restart(int);
   // int maxsize_restart();
 
+  std::ofstream myfile;
+
 
  protected:
   int first;                 // flag for first time initialization
@@ -76,7 +87,7 @@ class FixStoreNL : public Fix {
   // double *vinter;            // sum of vfrac for bonded neighbors
   // double *wvolume;           // weighted volume of particle
   // int isPMB,isLPS,isVES,isEPS;  // which flavor of PD
-
+  double cutsq;
   class NeighList *list;
 };
 
